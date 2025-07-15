@@ -4,7 +4,7 @@ import os
 from PIL import Image  # Agregar importación para imágenes
 
 # Ruta al archivo Parquet
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'bdd_sadipem_10.parquet')
+DATA_PATH = os.path.join(os.path.dirname(__file__), '..', 'bdd_sadipem_10.parquet')
 
 # Cargar datos
 @st.cache_data
@@ -718,7 +718,7 @@ elif page == 'Financiador por Sector':
         df = df[df['região'] == region_sel]
     if tipo_fin_sel != 'Todos':
         df = df[df['RGF_clasificacion'] == tipo_fin_sel]
-    financiadores = ['FONPLATA', 'BIRF', 'CAF', 'NDB', 'BID']
+    financiadores = ['FONPLATA', 'BIRF', 'CAF', 'BID', 'NDB']
     df = df[df['nombre_acreedor'].isin(financiadores)]
     # --- SOLO FINANCIADORES SELECCIONADOS ---
     # --- GRAFICOS DE DONUTS EN SUBPLOTS ---
