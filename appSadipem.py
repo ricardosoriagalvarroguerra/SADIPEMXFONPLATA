@@ -124,28 +124,31 @@ elif page == 'Interno Vs Externo':
         df = df[df['tipo_ente'] == tipo_ente_sel]
     sectores = ['Todas'] + sorted(df['sector'].dropna().unique().tolist())
     sector_sel = st.sidebar.selectbox('Filtrar por sector', sectores, index=0)
-    regiones = ['Todas'] + sorted(df['região'].dropna().unique().tolist())
-    region_sel = st.sidebar.selectbox('Filtrar por región', regiones, index=0)
-    # Sliders después
-    df['fecha_contratacion'] = pd.to_datetime(df['fecha_contratacion'], errors='coerce')
-    df['año'] = df['fecha_contratacion'].dt.year
-    min_year = int(df['fecha_contratacion'].dt.year.min())
-    max_year = int(df['fecha_contratacion'].dt.year.max())
-    year_range = st.sidebar.slider('Filtrar por año de contratación', min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
-    min_usd_m = float(df['valor_usd'].min()) / 1_000_000
-    max_usd_m = float(df['valor_usd'].max()) / 1_000_000
-    valor_usd_range_m = st.sidebar.slider('Filtrar por valor USD (millones)', min_value=min_usd_m, max_value=max_usd_m, value=(min_usd_m, max_usd_m), step=0.1, format='%.2f')
-    min_tiempo = float(df['tiempo_prestamo'].min())
-    max_tiempo = float(df['tiempo_prestamo'].max())
-    tiempo_prestamo_range = st.sidebar.slider('Filtrar por tiempo de préstamo (años)', min_value=min_tiempo, max_value=max_tiempo, value=(min_tiempo, max_tiempo), step=1.0, format='%.1f')
+    # --- Reemplazo de sliders por number_input en todos los filtros relevantes ---
+    # Buscar y reemplazar en cada sección donde aparecen los sliders:
+    # year_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # valor_usd_range_m = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # tiempo_prestamo_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+
+    # Ejemplo para cada filtro (aplicar en cada sección):
+    # Año de contratación
+    min_year_input = st.sidebar.number_input('Año de contratación mínimo', min_value=min_year, max_value=max_year, value=min_year, step=1)
+    max_year_input = st.sidebar.number_input('Año de contratación máximo', min_value=min_year, max_value=max_year, value=max_year, step=1)
+    year_range = (min_year_input, max_year_input)
+    # Valor USD (millones)
+    min_usd_m_input = st.sidebar.number_input('Valor USD mínimo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
+    max_usd_m_input = st.sidebar.number_input('Valor USD máximo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
+    valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
+    # Tiempo de préstamo (años)
+    min_tiempo_input = st.sidebar.number_input('Tiempo de préstamo mínimo (años)', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
+    max_tiempo_input = st.sidebar.number_input('Tiempo de préstamo máximo (años)', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
+    tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
     # Aplicar filtros
     df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
     df = df[(df['tiempo_prestamo'] >= tiempo_prestamo_range[0]) & (df['tiempo_prestamo'] <= tiempo_prestamo_range[1])]
     if sector_sel != 'Todas':
         df = df[df['sector'] == sector_sel]
-    if region_sel != 'Todas':
-        df = df[df['região'] == region_sel]
     # Agrupar por año y clasificación
     grouped = df.groupby(['año', 'RGF_clasificacion'])['valor_usd'].sum().reset_index()
     grouped['valor_usd_millones'] = grouped['valor_usd'] / 1_000_000
@@ -222,18 +225,25 @@ elif page == 'Regiones por Financiador':
     sector_sel = st.sidebar.selectbox('Filtrar por sector', sectores, index=0)
     tipos_fin = ['Todos'] + sorted(df['RGF_clasificacion'].dropna().unique().tolist())
     tipo_fin_sel = st.sidebar.selectbox('Tipo de financiamiento', tipos_fin, index=0)
-    # Sliders después
-    df['fecha_contratacion'] = pd.to_datetime(df['fecha_contratacion'], errors='coerce')
-    df['año'] = df['fecha_contratacion'].dt.year
-    min_year = int(df['fecha_contratacion'].dt.year.min())
-    max_year = int(df['fecha_contratacion'].dt.year.max())
-    year_range = st.sidebar.slider('Filtrar por año de contratación', min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
-    min_usd_m = float(df['valor_usd'].min()) / 1_000_000
-    max_usd_m = float(df['valor_usd'].max()) / 1_000_000
-    valor_usd_range_m = st.sidebar.slider('Filtrar por valor USD (millones)', min_value=min_usd_m, max_value=max_usd_m, value=(min_usd_m, max_usd_m), step=0.1, format='%.2f')
-    min_tiempo = float(df['tiempo_prestamo'].min())
-    max_tiempo = float(df['tiempo_prestamo'].max())
-    tiempo_prestamo_range = st.sidebar.slider('Filtrar por tiempo de préstamo (años)', min_value=min_tiempo, max_value=max_tiempo, value=(min_tiempo, max_tiempo), step=1.0, format='%.1f')
+    # --- Reemplazo de sliders por number_input en todos los filtros relevantes ---
+    # Buscar y reemplazar en cada sección donde aparecen los sliders:
+    # year_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # valor_usd_range_m = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # tiempo_prestamo_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+
+    # Ejemplo para cada filtro (aplicar en cada sección):
+    # Año de contratación
+    min_year_input = st.sidebar.number_input('Año de contratación mínimo', min_value=min_year, max_value=max_year, value=min_year, step=1)
+    max_year_input = st.sidebar.number_input('Año de contratación máximo', min_value=min_year, max_value=max_year, value=max_year, step=1)
+    year_range = (min_year_input, max_year_input)
+    # Valor USD (millones)
+    min_usd_m_input = st.sidebar.number_input('Valor USD mínimo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
+    max_usd_m_input = st.sidebar.number_input('Valor USD máximo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
+    valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
+    # Tiempo de préstamo (años)
+    min_tiempo_input = st.sidebar.number_input('Tiempo de préstamo mínimo (años)', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
+    max_tiempo_input = st.sidebar.number_input('Tiempo de préstamo máximo (años)', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
+    tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
     # Aplicar filtros
     df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
@@ -470,18 +480,25 @@ elif page == 'Regiones por Sector':
         df = df[df['tipo_ente'] == tipo_ente_sel]
     tipos_fin = ['Todos'] + sorted(df['RGF_clasificacion'].dropna().unique().tolist())
     tipo_fin_sel = st.sidebar.selectbox('Tipo de financiamiento', tipos_fin, index=0)
-    # Sliders después
-    df['fecha_contratacion'] = pd.to_datetime(df['fecha_contratacion'], errors='coerce')
-    df['año'] = df['fecha_contratacion'].dt.year
-    min_year = int(df['fecha_contratacion'].dt.year.min())
-    max_year = int(df['fecha_contratacion'].dt.year.max())
-    year_range = st.sidebar.slider('Filtrar por año de contratación', min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
-    min_usd_m = float(df['valor_usd'].min()) / 1_000_000
-    max_usd_m = float(df['valor_usd'].max()) / 1_000_000
-    valor_usd_range_m = st.sidebar.slider('Filtrar por valor USD (millones)', min_value=min_usd_m, max_value=max_usd_m, value=(min_usd_m, max_usd_m), step=0.1, format='%.2f')
-    min_tiempo = float(df['tiempo_prestamo'].min())
-    max_tiempo = float(df['tiempo_prestamo'].max())
-    tiempo_prestamo_range = st.sidebar.slider('Filtrar por tiempo de préstamo (años)', min_value=min_tiempo, max_value=max_tiempo, value=(min_tiempo, max_tiempo), step=1.0, format='%.1f')
+    # --- Reemplazo de sliders por number_input en todos los filtros relevantes ---
+    # Buscar y reemplazar en cada sección donde aparecen los sliders:
+    # year_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # valor_usd_range_m = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # tiempo_prestamo_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+
+    # Ejemplo para cada filtro (aplicar en cada sección):
+    # Año de contratación
+    min_year_input = st.sidebar.number_input('Año de contratación mínimo', min_value=min_year, max_value=max_year, value=min_year, step=1)
+    max_year_input = st.sidebar.number_input('Año de contratación máximo', min_value=min_year, max_value=max_year, value=max_year, step=1)
+    year_range = (min_year_input, max_year_input)
+    # Valor USD (millones)
+    min_usd_m_input = st.sidebar.number_input('Valor USD mínimo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
+    max_usd_m_input = st.sidebar.number_input('Valor USD máximo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
+    valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
+    # Tiempo de préstamo (años)
+    min_tiempo_input = st.sidebar.number_input('Tiempo de préstamo mínimo (años)', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
+    max_tiempo_input = st.sidebar.number_input('Tiempo de préstamo máximo (años)', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
+    tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
     # Aplicar filtros
     df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
@@ -698,18 +715,25 @@ elif page == 'Financiador por Sector':
     region_sel = st.sidebar.selectbox('Filtrar por región', regiones, index=0)
     tipos_fin = ['Todos'] + sorted(df['RGF_clasificacion'].dropna().unique().tolist())
     tipo_fin_sel = st.sidebar.selectbox('Tipo de financiamiento', tipos_fin, index=0)
-    # Sliders después
-    df['fecha_contratacion'] = pd.to_datetime(df['fecha_contratacion'], errors='coerce')
-    df['año'] = df['fecha_contratacion'].dt.year
-    min_year = int(df['fecha_contratacion'].dt.year.min())
-    max_year = int(df['fecha_contratacion'].dt.year.max())
-    year_range = st.sidebar.slider('Filtrar por año de contratación', min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
-    min_usd_m = float(df['valor_usd'].min()) / 1_000_000
-    max_usd_m = float(df['valor_usd'].max()) / 1_000_000
-    valor_usd_range_m = st.sidebar.slider('Filtrar por valor USD (millones)', min_value=min_usd_m, max_value=max_usd_m, value=(min_usd_m, max_usd_m), step=0.1, format='%.2f')
-    min_tiempo = float(df['tiempo_prestamo'].min())
-    max_tiempo = float(df['tiempo_prestamo'].max())
-    tiempo_prestamo_range = st.sidebar.slider('Filtrar por tiempo de préstamo (años)', min_value=min_tiempo, max_value=max_tiempo, value=(min_tiempo, max_tiempo), step=1.0, format='%.1f')
+    # --- Reemplazo de sliders por number_input en todos los filtros relevantes ---
+    # Buscar y reemplazar en cada sección donde aparecen los sliders:
+    # year_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # valor_usd_range_m = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # tiempo_prestamo_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+
+    # Ejemplo para cada filtro (aplicar en cada sección):
+    # Año de contratación
+    min_year_input = st.sidebar.number_input('Año de contratación mínimo', min_value=min_year, max_value=max_year, value=min_year, step=1)
+    max_year_input = st.sidebar.number_input('Año de contratación máximo', min_value=min_year, max_value=max_year, value=max_year, step=1)
+    year_range = (min_year_input, max_year_input)
+    # Valor USD (millones)
+    min_usd_m_input = st.sidebar.number_input('Valor USD mínimo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
+    max_usd_m_input = st.sidebar.number_input('Valor USD máximo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
+    valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
+    # Tiempo de préstamo (años)
+    min_tiempo_input = st.sidebar.number_input('Tiempo de préstamo mínimo (años)', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
+    max_tiempo_input = st.sidebar.number_input('Tiempo de préstamo máximo (años)', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
+    tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
     # Aplicar filtros
     df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
@@ -1033,13 +1057,25 @@ elif page == 'Dispersion':
     tipo_ente_sel = st.sidebar.selectbox('Filtrar por tipo de ente', tipo_entes, index=0)
     if tipo_ente_sel != 'Todas':
         df = df[df['tipo_ente'] == tipo_ente_sel]
-    # Sliders después
-    min_usd_m = float(df['valor_usd'].min()) / 1_000_000
-    max_usd_m = float(df['valor_usd'].max()) / 1_000_000
-    valor_usd_range_m = st.sidebar.slider('Filtrar por valor USD (millones)', min_value=min_usd_m, max_value=max_usd_m, value=(min_usd_m, max_usd_m), step=0.1, format='%.2f')
-    min_tiempo = float(df['tiempo_prestamo'].min())
-    max_tiempo = float(df['tiempo_prestamo'].max())
-    tiempo_prestamo_range = st.sidebar.slider('Filtrar por tiempo de préstamo (años)', min_value=min_tiempo, max_value=max_tiempo, value=(min_tiempo, max_tiempo), step=1.0, format='%.1f')
+    # --- Reemplazo de sliders por number_input en todos los filtros relevantes ---
+    # Buscar y reemplazar en cada sección donde aparecen los sliders:
+    # year_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # valor_usd_range_m = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # tiempo_prestamo_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+
+    # Ejemplo para cada filtro (aplicar en cada sección):
+    # Año de contratación
+    min_year_input = st.sidebar.number_input('Año de contratación mínimo', min_value=min_year, max_value=max_year, value=min_year, step=1)
+    max_year_input = st.sidebar.number_input('Año de contratación máximo', min_value=min_year, max_value=max_year, value=max_year, step=1)
+    year_range = (min_year_input, max_year_input)
+    # Valor USD (millones)
+    min_usd_m_input = st.sidebar.number_input('Valor USD mínimo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
+    max_usd_m_input = st.sidebar.number_input('Valor USD máximo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
+    valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
+    # Tiempo de préstamo (años)
+    min_tiempo_input = st.sidebar.number_input('Tiempo de préstamo mínimo (años)', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
+    max_tiempo_input = st.sidebar.number_input('Tiempo de préstamo máximo (años)', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
+    tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
     # Aplicar filtros
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
     df = df[(df['tiempo_prestamo'] >= tiempo_prestamo_range[0]) & (df['tiempo_prestamo'] <= tiempo_prestamo_range[1])]
@@ -1099,7 +1135,29 @@ elif page == 'Box Plots':
     tipo_ente_sel = st.sidebar.selectbox('Filtrar por tipo de ente', tipo_entes, index=0)
     if tipo_ente_sel != 'Todas':
         df = df[df['tipo_ente'] == tipo_ente_sel]
-    # Sliders después
+    # --- Reemplazo de sliders por number_input en todos los filtros relevantes ---
+    # Buscar y reemplazar en cada sección donde aparecen los sliders:
+    # year_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # valor_usd_range_m = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+    # tiempo_prestamo_range = st.sidebar.slider(...) -> dos st.sidebar.number_input para min y max
+
+    # Ejemplo para cada filtro (aplicar en cada sección):
+    # Año de contratación
+    min_year_input = st.sidebar.number_input('Año de contratación mínimo', min_value=min_year, max_value=max_year, value=min_year, step=1)
+    max_year_input = st.sidebar.number_input('Año de contratación máximo', min_value=min_year, max_value=max_year, value=max_year, step=1)
+    year_range = (min_year_input, max_year_input)
+    # Valor USD (millones)
+    min_usd_m_input = st.sidebar.number_input('Valor USD mínimo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
+    max_usd_m_input = st.sidebar.number_input('Valor USD máximo (millones)', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
+    valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
+    # Tiempo de préstamo (años)
+    min_tiempo_input = st.sidebar.number_input('Tiempo de préstamo mínimo (años)', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
+    max_tiempo_input = st.sidebar.number_input('Tiempo de préstamo máximo (años)', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
+    tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
+    # Aplicar filtros
+    df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
+    df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
+    df = df[(df['tiempo_prestamo'] >= tiempo_prestamo_range[0]) & (df['tiempo_prestamo'] <= tiempo_prestamo_range[1])]
     financiadores_box = ['Caixa', 'BNDS', 'FONPLATA', 'BID', 'CAF', 'BIRF', 'NDB']
     df = df[df['nombre_acreedor'].isin(financiadores_box)]
     min_tiempo = float(df['tiempo_prestamo'].min())
