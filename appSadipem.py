@@ -4,7 +4,7 @@ import os
 from PIL import Image  # Agregar importación para imágenes
 
 # Ruta al archivo Parquet
- DATA_PATH = os.path.join(os.path.dirname(__file__), 'bdd_sadipem_10.parquet')
+DATA_PATH = os.path.join(os.path.dirname(__file__), 'bdd_sadipem_10.parquet')
 
 # Cargar datos
 @st.cache_data
