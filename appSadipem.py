@@ -679,7 +679,7 @@ elif page == 'Financiador por Sector':
         st.image(logo_img, width=60)
     with header_cols[1]:
         st.markdown('<h1 style="margin:0; padding:0;">Financiador por Sector</h1>', unsafe_allow_html=True)
-    st.write('Análisis de sectores según el financiador (solo FONPLATA, BID, BIRF, New Development Bank, CAF).')
+    st.write('Análisis de sectores según el financiador (solo FONPLATA, BIRF, CAF, NDB y BID).')
     df = data.copy()
     # --- FILTROS EN SIDEBAR ---
     st.sidebar.markdown('---')
@@ -718,7 +718,7 @@ elif page == 'Financiador por Sector':
         df = df[df['região'] == region_sel]
     if tipo_fin_sel != 'Todos':
         df = df[df['RGF_clasificacion'] == tipo_fin_sel]
-    financiadores = ['FONPLATA', 'Caixa', 'BNDS', 'BID', 'CAF', 'BIRF', 'NDB', 'Banco do Brasil S/A']
+    financiadores = ['FONPLATA', 'BIRF', 'CAF', 'NDB', 'BID']
     df = df[df['nombre_acreedor'].isin(financiadores)]
     # --- SOLO FINANCIADORES SELECCIONADOS ---
     # --- GRAFICOS DE DONUTS EN SUBPLOTS ---
