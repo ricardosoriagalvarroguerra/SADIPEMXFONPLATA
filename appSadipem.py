@@ -826,28 +826,27 @@ elif page == 'Financiador por Sector':
                     st.plotly_chart(fig, use_container_width=True)
         # Renderizar segunda fila: leyenda + donuts restantes
         if n > cols:
-            donut_cols2 = st.columns(cols)
-            with donut_cols2[0]:
-                legend_html = "<div style='display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin-top: 10px; margin-bottom: 30px;'>"
-                def get_color_leyenda(nombre):
-                    if nombre in color_map:
-                        return color_map[nombre]
-                    else:
-                        all_labels = list(color_map.keys()) + sorted(set(sectores_presentes.keys()) - set(color_map.keys()))
-                        idx = all_labels.index(nombre)
-                        return default_colors[idx % len(default_colors)]
-                for nombre, _ in sectores_presentes.items():
-                    color = get_color_leyenda(nombre)
-                    legend_html += f"<div style='display: flex; align-items: center; gap: 6px;'><div style='width: 14px; height: 14px; background: {color}; border-radius: 3px; border: 1px solid #888;'></div><span style='font-size: 13px;'>{nombre}</span></div>"
-                legend_html += "</div>"
-                st.markdown(legend_html, unsafe_allow_html=True)
             donuts_restantes = n - cols
-            for j in range(cols, n):
-                col_idx = j - cols
-                if col_idx >= cols:
-                    break  # Nunca excedas el número de columnas
-                with donut_cols2[col_idx]:
-                    fin = financiadores_unicos[j]
+            donut_cols2 = st.columns(cols)
+            if donuts_restantes == 2:
+                # Leyenda en la primera columna
+                with donut_cols2[0]:
+                    legend_html = "<div style='display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin-top: 10px; margin-bottom: 30px;'>"
+                    def get_color_leyenda(nombre):
+                        if nombre in color_map:
+                            return color_map[nombre]
+                        else:
+                            all_labels = list(color_map.keys()) + sorted(set(sectores_presentes.keys()) - set(color_map.keys()))
+                            idx = all_labels.index(nombre)
+                            return default_colors[idx % len(default_colors)]
+                    for nombre, _ in sectores_presentes.items():
+                        color = get_color_leyenda(nombre)
+                        legend_html += f"<div style='display: flex; align-items: center; gap: 6px;'><div style='width: 14px; height: 14px; background: {color}; border-radius: 3px; border: 1px solid #888;'></div><span style='font-size: 13px;'>{nombre}</span></div>"
+                    legend_html += "</div>"
+                    st.markdown(legend_html, unsafe_allow_html=True)
+                # NDB en la segunda columna
+                with donut_cols2[1]:
+                    fin = financiadores_unicos[3]
                     df_fin = df[df['nombre_acreedor'] == fin]
                     top_sectores = df_fin.groupby('sector')['valor_usd'].sum().nlargest(5)
                     otros = df_fin[~df_fin['sector'].isin(top_sectores.index)]['valor_usd'].sum()
@@ -899,6 +898,119 @@ elif page == 'Financiador por Sector':
                         yanchor="middle",
                     )
                     st.plotly_chart(fig, use_container_width=True)
+                # BID en la tercera columna
+                with donut_cols2[2]:
+                    fin = financiadores_unicos[4]
+                    df_fin = df[df['nombre_acreedor'] == fin]
+                    top_sectores = df_fin.groupby('sector')['valor_usd'].sum().nlargest(5)
+                    otros = df_fin[~df_fin['sector'].isin(top_sectores.index)]['valor_usd'].sum()
+                    labels = list(top_sectores.index)
+                    values = list(top_sectores.values)
+                    if otros > 0:
+                        labels.append('Otros')
+                        values.append(otros)
+                    labels = labels[:6]
+                    values = values[:6]
+                    import plotly.express as px
+                    default_colors = px.colors.qualitative.Plotly
+                    def get_color(nombre):
+                        if nombre in color_map:
+                            return color_map[nombre]
+                        else:
+                            all_labels = list(color_map.keys()) + sorted(set(sectores_presentes.keys()) - set(color_map.keys()))
+                            idx = all_labels.index(nombre)
+                            return default_colors[idx % len(default_colors)]
+                    colors = [get_color(label) for label in labels]
+                    hovertexts = [f"{n}<br>{v/1_000_000:.2f} M USD" for n, v in zip(labels, values)]
+                    fig = go.Figure(data=[
+                        go.Pie(
+                            labels=labels,
+                            values=values,
+                            hole=0.75,
+                            textinfo='percent',
+                            textposition='inside',
+                            showlegend=False,
+                            marker=dict(colors=colors, line=dict(color='black', width=2)),
+                            hovertext=hovertexts,
+                            hoverinfo='text+percent',
+                            domain={'x': [0.08, 0.92], 'y': [0.08, 0.92]}
+                        )
+                    ])
+                    fig.update_traces(textfont_size=12, textinfo='percent')
+                    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), height=260)
+                    theme_base = st.get_option('theme.base')
+                    fin_title_color = 'white' if theme_base == 'dark' else 'black'
+                    fig.add_annotation(
+                        x=0.5,
+                        y=0.5,
+                        text=f"<b>{fin}</b>",
+                        showarrow=False,
+                        font=dict(size=22, color=fin_title_color),
+                        xref="paper",
+                        yref="paper",
+                        xanchor="center",
+                        yanchor="middle",
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                # lógica general para otros casos
+                for j in range(cols, n):
+                    col_idx = j - cols
+                    if col_idx >= cols:
+                        break  # Nunca excedas el número de columnas
+                    with donut_cols2[col_idx]:
+                        fin = financiadores_unicos[j]
+                        df_fin = df[df['nombre_acreedor'] == fin]
+                        top_sectores = df_fin.groupby('sector')['valor_usd'].sum().nlargest(5)
+                        otros = df_fin[~df_fin['sector'].isin(top_sectores.index)]['valor_usd'].sum()
+                        labels = list(top_sectores.index)
+                        values = list(top_sectores.values)
+                        if otros > 0:
+                            labels.append('Otros')
+                            values.append(otros)
+                        labels = labels[:6]
+                        values = values[:6]
+                        import plotly.express as px
+                        default_colors = px.colors.qualitative.Plotly
+                        def get_color(nombre):
+                            if nombre in color_map:
+                                return color_map[nombre]
+                            else:
+                                all_labels = list(color_map.keys()) + sorted(set(sectores_presentes.keys()) - set(color_map.keys()))
+                                idx = all_labels.index(nombre)
+                                return default_colors[idx % len(default_colors)]
+                        colors = [get_color(label) for label in labels]
+                        hovertexts = [f"{n}<br>{v/1_000_000:.2f} M USD" for n, v in zip(labels, values)]
+                        fig = go.Figure(data=[
+                            go.Pie(
+                                labels=labels,
+                                values=values,
+                                hole=0.75,
+                                textinfo='percent',
+                                textposition='inside',
+                                showlegend=False,
+                                marker=dict(colors=colors, line=dict(color='black', width=2)),
+                                hovertext=hovertexts,
+                                hoverinfo='text+percent',
+                                domain={'x': [0.08, 0.92], 'y': [0.08, 0.92]}
+                            )
+                        ])
+                        fig.update_traces(textfont_size=12, textinfo='percent')
+                        fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), height=260)
+                        theme_base = st.get_option('theme.base')
+                        fin_title_color = 'white' if theme_base == 'dark' else 'black'
+                        fig.add_annotation(
+                            x=0.5,
+                            y=0.5,
+                            text=f"<b>{fin}</b>",
+                            showarrow=False,
+                            font=dict(size=22, color=fin_title_color),
+                            xref="paper",
+                            yref="paper",
+                            xanchor="center",
+                            yanchor="middle",
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
 
 elif page == 'Dispersion':
     header_cols = st.columns([0.12, 0.88])
