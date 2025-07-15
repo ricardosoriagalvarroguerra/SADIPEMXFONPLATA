@@ -843,9 +843,9 @@ elif page == 'Financiador por Sector':
                 st.markdown(legend_html, unsafe_allow_html=True)
             donuts_restantes = n - cols
             for j in range(cols, n):
-                col_idx = j - cols + 1
-                if donuts_restantes == 1 and col_idx == 2:
-                    continue
+                col_idx = j - cols
+                if col_idx >= cols:
+                    break  # Nunca excedas el número de columnas
                 with donut_cols2[col_idx]:
                     fin = financiadores_unicos[j]
                     df_fin = df[df['nombre_acreedor'] == fin]
