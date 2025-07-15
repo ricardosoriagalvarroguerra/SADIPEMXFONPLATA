@@ -248,21 +248,18 @@ elif page == 'Regiones por Financiador':
     tipos_fin = ['Todos'] + sorted(df['RGF_clasificacion'].dropna().unique().tolist())
     tipo_fin_sel = st.sidebar.selectbox('Tipo de financiamiento', tipos_fin, index=0)
     # --- Filtros en una sola línea con etiquetas cortas ---
-    # Año de contratación
     col1, col2 = st.sidebar.columns(2)
     with col1:
         min_year_input = st.number_input('Año mín', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].min()), step=1)
     with col2:
         max_year_input = st.number_input('Año máx', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].max()), step=1)
     year_range = (min_year_input, max_year_input)
-    # Valor USD (millones)
     col3, col4 = st.sidebar.columns(2)
     with col3:
         min_usd_m_input = st.number_input('USD mín', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].min()) / 1_000_000, step=0.1, format='%.2f')
     with col4:
         max_usd_m_input = st.number_input('USD máx', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].max()) / 1_000_000, step=0.1, format='%.2f')
     valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
-    # Tiempo de préstamo (años)
     col5, col6 = st.sidebar.columns(2)
     with col5:
         min_tiempo_input = st.number_input('Tiempo mín', min_value=float(df['tiempo_prestamo'].min()), max_value=float(df['tiempo_prestamo'].max()), value=float(df['tiempo_prestamo'].min()), step=1.0, format='%.1f')
@@ -506,21 +503,18 @@ elif page == 'Regiones por Sector':
     tipos_fin = ['Todos'] + sorted(df['RGF_clasificacion'].dropna().unique().tolist())
     tipo_fin_sel = st.sidebar.selectbox('Tipo de financiamiento', tipos_fin, index=0)
     # --- Filtros en una sola línea con etiquetas cortas ---
-    # Año de contratación
     col1, col2 = st.sidebar.columns(2)
     with col1:
         min_year_input = st.number_input('Año mín', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].min()), step=1)
     with col2:
         max_year_input = st.number_input('Año máx', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].max()), step=1)
     year_range = (min_year_input, max_year_input)
-    # Valor USD (millones)
     col3, col4 = st.sidebar.columns(2)
     with col3:
         min_usd_m_input = st.number_input('USD mín', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].min()) / 1_000_000, step=0.1, format='%.2f')
     with col4:
         max_usd_m_input = st.number_input('USD máx', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].max()) / 1_000_000, step=0.1, format='%.2f')
     valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
-    # Tiempo de préstamo (años)
     col5, col6 = st.sidebar.columns(2)
     with col5:
         min_tiempo_input = st.number_input('Tiempo mín', min_value=float(df['tiempo_prestamo'].min()), max_value=float(df['tiempo_prestamo'].max()), value=float(df['tiempo_prestamo'].min()), step=1.0, format='%.1f')
@@ -744,21 +738,18 @@ elif page == 'Financiador por Sector':
     tipos_fin = ['Todos'] + sorted(df['RGF_clasificacion'].dropna().unique().tolist())
     tipo_fin_sel = st.sidebar.selectbox('Tipo de financiamiento', tipos_fin, index=0)
     # --- Filtros en una sola línea con etiquetas cortas ---
-    # Año de contratación
     col1, col2 = st.sidebar.columns(2)
     with col1:
         min_year_input = st.number_input('Año mín', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].min()), step=1)
     with col2:
         max_year_input = st.number_input('Año máx', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].max()), step=1)
     year_range = (min_year_input, max_year_input)
-    # Valor USD (millones)
     col3, col4 = st.sidebar.columns(2)
     with col3:
         min_usd_m_input = st.number_input('USD mín', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].min()) / 1_000_000, step=0.1, format='%.2f')
     with col4:
         max_usd_m_input = st.number_input('USD máx', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].max()) / 1_000_000, step=0.1, format='%.2f')
     valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
-    # Tiempo de préstamo (años)
     col5, col6 = st.sidebar.columns(2)
     with col5:
         min_tiempo_input = st.number_input('Tiempo mín', min_value=float(df['tiempo_prestamo'].min()), max_value=float(df['tiempo_prestamo'].max()), value=float(df['tiempo_prestamo'].min()), step=1.0, format='%.1f')
@@ -1190,21 +1181,18 @@ elif page == 'Box Plots':
     if tipo_ente_sel != 'Todas':
         df = df[df['tipo_ente'] == tipo_ente_sel]
     # --- Filtros en una sola línea con etiquetas cortas ---
-    # Año de contratación
     col1, col2 = st.sidebar.columns(2)
     with col1:
         min_year_input = st.number_input('Año mín', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].min()), step=1)
     with col2:
         max_year_input = st.number_input('Año máx', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].max()), step=1)
     year_range = (min_year_input, max_year_input)
-    # Valor USD (millones)
     col3, col4 = st.sidebar.columns(2)
     with col3:
         min_usd_m_input = st.number_input('USD mín', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].min()) / 1_000_000, step=0.1, format='%.2f')
     with col4:
         max_usd_m_input = st.number_input('USD máx', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].max()) / 1_000_000, step=0.1, format='%.2f')
     valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
-    # Tiempo de préstamo (años)
     col5, col6 = st.sidebar.columns(2)
     with col5:
         min_tiempo_input = st.number_input('Tiempo mín', min_value=float(df['tiempo_prestamo'].min()), max_value=float(df['tiempo_prestamo'].max()), value=float(df['tiempo_prestamo'].min()), step=1.0, format='%.1f')
