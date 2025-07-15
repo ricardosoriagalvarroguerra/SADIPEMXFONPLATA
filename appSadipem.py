@@ -12,6 +12,10 @@ def load_data():
     return pd.read_parquet(DATA_PATH)
 
 data = load_data()
+# Asegurar que la fecha esté en formato datetime y derivar la columna de año
+if 'fecha_contratacion' in data.columns:
+    data['fecha_contratacion'] = pd.to_datetime(data['fecha_contratacion'], errors='coerce')
+    data['año'] = data['fecha_contratacion'].dt.year
 # Reemplazar nombre largo por 'BNDS' directamente en la base
 data['nombre_acreedor'] = data['nombre_acreedor'].replace('Banco Nacional de Desenvolvimento Econômico e Social', 'BNDS')
 # Reemplazar 'New Development Bank' por 'NDB'
