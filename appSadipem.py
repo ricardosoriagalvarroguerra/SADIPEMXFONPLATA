@@ -124,25 +124,22 @@ elif page == 'Interno Vs Externo':
         df = df[df['tipo_ente'] == tipo_ente_sel]
     sectores = ['Todas'] + sorted(df['sector'].dropna().unique().tolist())
     sector_sel = st.sidebar.selectbox('Filtrar por sector', sectores, index=0)
-    # --- Asegurar existencia de columnas y valores por defecto para los filtros ---
-    # Año de contratación
+    # --- BLOQUE SEGURO PARA FILTROS NUMÉRICOS EN TODAS LAS SECCIONES ---
     if 'fecha_contratacion' not in df.columns or not pd.api.types.is_datetime64_any_dtype(df['fecha_contratacion']):
         df['fecha_contratacion'] = pd.to_datetime(df['fecha_contratacion'], errors='coerce')
     df['año'] = df['fecha_contratacion'].dt.year
-    if not df.empty and df['año'].notnull().any():
+    if not df.empty and 'año' in df.columns and df['año'].notnull().any():
         min_year = int(df['año'].min())
         max_year = int(df['año'].max())
     else:
         min_year = 2000
         max_year = 2024
-    # Valor USD (millones)
     if 'valor_usd' in df.columns and not df.empty and df['valor_usd'].notnull().any():
         min_usd_m = float(df['valor_usd'].min()) / 1_000_000
         max_usd_m = float(df['valor_usd'].max()) / 1_000_000
     else:
         min_usd_m = 0.0
         max_usd_m = 100.0
-    # Tiempo de préstamo (años)
     if 'tiempo_prestamo' in df.columns and not df.empty and df['tiempo_prestamo'].notnull().any():
         min_tiempo = float(df['tiempo_prestamo'].min())
         max_tiempo = float(df['tiempo_prestamo'].max())
@@ -150,7 +147,6 @@ elif page == 'Interno Vs Externo':
         min_tiempo = 0.0
         max_tiempo = 50.0
 
-    # Ahora los number_input pueden usarse sin riesgo de KeyError
     col1, col2 = st.sidebar.columns(2)
     with col1:
         min_year_input = st.number_input('Año mín', min_value=min_year, max_value=max_year, value=min_year, step=1)
@@ -1092,29 +1088,49 @@ elif page == 'Dispersion':
     tipo_ente_sel = st.sidebar.selectbox('Filtrar por tipo de ente', tipo_entes, index=0)
     if tipo_ente_sel != 'Todas':
         df = df[df['tipo_ente'] == tipo_ente_sel]
-    # --- Filtros en una sola línea con etiquetas cortas ---
-    # Año de contratación
+    # --- BLOQUE SEGURO PARA FILTROS NUMÉRICOS EN TODAS LAS SECCIONES ---
+    if 'fecha_contratacion' not in df.columns or not pd.api.types.is_datetime64_any_dtype(df['fecha_contratacion']):
+        df['fecha_contratacion'] = pd.to_datetime(df['fecha_contratacion'], errors='coerce')
+    df['año'] = df['fecha_contratacion'].dt.year
+    if not df.empty and 'año' in df.columns and df['año'].notnull().any():
+        min_year = int(df['año'].min())
+        max_year = int(df['año'].max())
+    else:
+        min_year = 2000
+        max_year = 2024
+    if 'valor_usd' in df.columns and not df.empty and df['valor_usd'].notnull().any():
+        min_usd_m = float(df['valor_usd'].min()) / 1_000_000
+        max_usd_m = float(df['valor_usd'].max()) / 1_000_000
+    else:
+        min_usd_m = 0.0
+        max_usd_m = 100.0
+    if 'tiempo_prestamo' in df.columns and not df.empty and df['tiempo_prestamo'].notnull().any():
+        min_tiempo = float(df['tiempo_prestamo'].min())
+        max_tiempo = float(df['tiempo_prestamo'].max())
+    else:
+        min_tiempo = 0.0
+        max_tiempo = 50.0
+
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        min_year_input = st.number_input('Año mín', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].min()), step=1)
+        min_year_input = st.number_input('Año mín', min_value=min_year, max_value=max_year, value=min_year, step=1)
     with col2:
-        max_year_input = st.number_input('Año máx', min_value=int(df['año'].min()), max_value=int(df['año'].max()), value=int(df['año'].max()), step=1)
+        max_year_input = st.number_input('Año máx', min_value=min_year, max_value=max_year, value=max_year, step=1)
     year_range = (min_year_input, max_year_input)
-    # Valor USD (millones)
     col3, col4 = st.sidebar.columns(2)
     with col3:
-        min_usd_m_input = st.number_input('USD mín', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].min()) / 1_000_000, step=0.1, format='%.2f')
+        min_usd_m_input = st.number_input('USD mín', min_value=min_usd_m, max_value=max_usd_m, value=min_usd_m, step=0.1, format='%.2f')
     with col4:
-        max_usd_m_input = st.number_input('USD máx', min_value=float(df['valor_usd'].min()) / 1_000_000, max_value=float(df['valor_usd'].max()) / 1_000_000, value=float(df['valor_usd'].max()) / 1_000_000, step=0.1, format='%.2f')
+        max_usd_m_input = st.number_input('USD máx', min_value=min_usd_m, max_value=max_usd_m, value=max_usd_m, step=0.1, format='%.2f')
     valor_usd_range_m = (min_usd_m_input, max_usd_m_input)
-    # Tiempo de préstamo (años)
     col5, col6 = st.sidebar.columns(2)
     with col5:
-        min_tiempo_input = st.number_input('Tiempo mín', min_value=float(df['tiempo_prestamo'].min()), max_value=float(df['tiempo_prestamo'].max()), value=float(df['tiempo_prestamo'].min()), step=1.0, format='%.1f')
+        min_tiempo_input = st.number_input('Tiempo mín', min_value=min_tiempo, max_value=max_tiempo, value=min_tiempo, step=1.0, format='%.1f')
     with col6:
-        max_tiempo_input = st.number_input('Tiempo máx', min_value=float(df['tiempo_prestamo'].min()), max_value=float(df['tiempo_prestamo'].max()), value=float(df['tiempo_prestamo'].max()), step=1.0, format='%.1f')
+        max_tiempo_input = st.number_input('Tiempo máx', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
     tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
     # Aplicar filtros
+    df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
     df = df[(df['tiempo_prestamo'] >= tiempo_prestamo_range[0]) & (df['tiempo_prestamo'] <= tiempo_prestamo_range[1])]
     financiadores_disp = ['FONPLATA', 'Caixa', 'BNDS', 'BID', 'BIRF', 'CAF', 'NDB', 'Banco do Brasil S/A']
