@@ -169,62 +169,132 @@ elif page == 'Interno Vs Externo':
     with col6:
         max_tiempo_input = st.number_input('Tiempo máx', min_value=min_tiempo, max_value=max_tiempo, value=max_tiempo, step=1.0, format='%.1f')
     tiempo_prestamo_range = (min_tiempo_input, max_tiempo_input)
+    if 'ver_por_sector' not in st.session_state:
+        st.session_state['ver_por_sector'] = False
+    if st.sidebar.button('Ver por Sector'):
+        st.session_state['ver_por_sector'] = not st.session_state['ver_por_sector']
     # Aplicar filtros
     df = df[(df['fecha_contratacion'].dt.year >= year_range[0]) & (df['fecha_contratacion'].dt.year <= year_range[1])]
     df = df[(df['valor_usd'] >= valor_usd_range_m[0] * 1_000_000) & (df['valor_usd'] <= valor_usd_range_m[1] * 1_000_000)]
     df = df[(df['tiempo_prestamo'] >= tiempo_prestamo_range[0]) & (df['tiempo_prestamo'] <= tiempo_prestamo_range[1])]
     if sector_sel != 'Todas':
         df = df[df['sector'] == sector_sel]
-    # Agrupar por año y clasificación
-    grouped = df.groupby(['año', 'RGF_clasificacion'])['valor_usd'].sum().reset_index()
-    grouped['valor_usd_millones'] = grouped['valor_usd'] / 1_000_000
-    # Definir el orden de las categorías: Interno abajo, Externo arriba
-    import pandas as pd
-    cat_type = pd.CategoricalDtype(['Interno', 'Externo'], ordered=True)
-    grouped['RGF_clasificacion'] = grouped['RGF_clasificacion'].astype(cat_type)
-    # Definir colores: Externo = #c1121f, Interno = #adb5bd
-    color_map = {'Externo': '#c1121f', 'Interno': '#adb5bd'}
-    # Crear gráfico stacked
-    import plotly.express as px
-    fig = px.bar(
-        grouped.sort_values(['año', 'RGF_clasificacion']),
-        x='año',
-        y='valor_usd_millones',
-        color='RGF_clasificacion',
-        color_discrete_map=color_map,
-        category_orders={'RGF_clasificacion': ['Interno', 'Externo']},
-        labels={'valor_usd_millones': 'Valor USD acumulado (millones)', 'RGF_clasificacion': 'Clasificación'},  # Eliminar 'año' del label
-        barmode='stack',
-        title='Aprobaciones anuales (USD Millones)',
-        height=350
-    )
-    fig.update_layout(title_x=0.5)
-    fig.update_yaxes(showgrid=False)
-    fig.update_xaxes(showgrid=False, title_text='')  # Quitar etiqueta eje x
-    fig.update_traces(marker_line_color='black', marker_line_width=2)
-    st.plotly_chart(fig, use_container_width=True)
+    if st.session_state['ver_por_sector']:
+        import plotly.express as px
+        color_map = {
+            'Agricultural development': '#003049',
+            'Education policy and administrative management': '#034078',
+            'Electric power transmission and distribution': '#2176ff',
+            'Energy generation, renewable sources - multiple technologies': '#38b000',
+            'Environmental policy and administrative management': '#4B4E6D',
+            'Formal sector financial intermediaries': '#c1121f',
+            'General infrastructure': '#246a73',
+            'Housing policy and administrative management': '#b7bdc1',
+            'Medical services': '#fdf0d5',
+            'Rural development': '#5E6472',
+            'Sanitation - large systems': '#6C584C',
+            'Security system management and reform': '#3D405B',
+            'Social protection and welfare services policy, planning and administration': '#669bbc',
+            'Technological research and development': '#415A77',
+            'Tourism policy and administrative management': '#B7BDCB',
+            'Transport policy, planning and administration': '#1B263B',
+            'Urban development': '#274060',
+            'Waste management/disposal': '#2C363F',
+            'Water supply - large systems': '#264653',
+            'Otros': '#b7bdc1',
+        }
+        grouped_sector = df.groupby(['RGF_clasificacion', 'sector'])['valor_usd'].sum().reset_index()
+        grouped_sector['valor_usd_millones'] = grouped_sector['valor_usd'] / 1_000_000
+        for clasif in ['Interno', 'Externo']:
+            df_cl = grouped_sector[grouped_sector['RGF_clasificacion'] == clasif].copy()
+            if df_cl.empty:
+                st.info(f'No hay datos para {clasif}.')
+                continue
+            df_cl = df_cl.sort_values('valor_usd_millones', ascending=False)
+            fig_abs = px.bar(
+                df_cl,
+                x='sector',
+                y='valor_usd_millones',
+                color='sector',
+                color_discrete_map=color_map,
+                labels={'sector': '', 'valor_usd_millones': 'Valor USD (millones)'},
+                title=f'Aprobaciones por sector - {clasif}',
+                height=350
+            )
+            fig_abs.update_layout(title_x=0.5, showlegend=False)
+            fig_abs.update_yaxes(showgrid=False)
+            fig_abs.update_xaxes(showgrid=False, title_text='', tickangle=45)
+            fig_abs.update_traces(marker_line_color='black', marker_line_width=2)
+            st.plotly_chart(fig_abs, use_container_width=True)
 
-    # Gráfico 100% stacked (proporcional)
-    grouped_pct = grouped.copy()
-    total_por_año = grouped_pct.groupby('año')['valor_usd_millones'].transform('sum')
-    grouped_pct['porcentaje'] = grouped_pct['valor_usd_millones'] / total_por_año * 100
-    fig_pct = px.bar(
-        grouped_pct.sort_values(['año', 'RGF_clasificacion']),
-        x='año',
-        y='porcentaje',
-        color='RGF_clasificacion',
-        color_discrete_map=color_map,
-        category_orders={'RGF_clasificacion': ['Interno', 'Externo']},
-        labels={'porcentaje': 'Porcentaje (%)', 'año': 'Año', 'RGF_clasificacion': 'Clasificación'},
-        barmode='stack',
-        title='%',
-        height=300
-    )
-    fig_pct.update_layout(title_x=0.5)
-    fig_pct.update_yaxes(range=[0, 100], showgrid=False)
-    fig_pct.update_xaxes(showgrid=False)  # Mantener etiqueta eje x
-    fig_pct.update_traces(marker_line_color='black', marker_line_width=2)
-    st.plotly_chart(fig_pct, use_container_width=True)
+            total_cl = df_cl['valor_usd_millones'].sum()
+            df_cl['porcentaje'] = df_cl['valor_usd_millones'] / total_cl * 100
+            fig_pct = px.bar(
+                df_cl,
+                x='sector',
+                y='porcentaje',
+                color='sector',
+                color_discrete_map=color_map,
+                labels={'sector': '', 'porcentaje': 'Porcentaje (%)'},
+                title=f'% por sector - {clasif}',
+                height=300
+            )
+            fig_pct.update_layout(title_x=0.5, showlegend=False)
+            fig_pct.update_yaxes(range=[0, 100], showgrid=False)
+            fig_pct.update_xaxes(showgrid=False, title_text='', tickangle=45)
+            fig_pct.update_traces(marker_line_color='black', marker_line_width=2)
+            st.plotly_chart(fig_pct, use_container_width=True)
+    else:
+        # Agrupar por año y clasificación
+        grouped = df.groupby(['año', 'RGF_clasificacion'])['valor_usd'].sum().reset_index()
+        grouped['valor_usd_millones'] = grouped['valor_usd'] / 1_000_000
+        # Definir el orden de las categorías: Interno abajo, Externo arriba
+        import pandas as pd
+        cat_type = pd.CategoricalDtype(['Interno', 'Externo'], ordered=True)
+        grouped['RGF_clasificacion'] = grouped['RGF_clasificacion'].astype(cat_type)
+        # Definir colores: Externo = #c1121f, Interno = #adb5bd
+        color_map = {'Externo': '#c1121f', 'Interno': '#adb5bd'}
+        # Crear gráfico stacked
+        import plotly.express as px
+        fig = px.bar(
+            grouped.sort_values(['año', 'RGF_clasificacion']),
+            x='año',
+            y='valor_usd_millones',
+            color='RGF_clasificacion',
+            color_discrete_map=color_map,
+            category_orders={'RGF_clasificacion': ['Interno', 'Externo']},
+            labels={'valor_usd_millones': 'Valor USD acumulado (millones)', 'RGF_clasificacion': 'Clasificación'},
+            barmode='stack',
+            title='Aprobaciones anuales (USD Millones)',
+            height=350
+        )
+        fig.update_layout(title_x=0.5)
+        fig.update_yaxes(showgrid=False)
+        fig.update_xaxes(showgrid=False, title_text='')  # Quitar etiqueta eje x
+        fig.update_traces(marker_line_color='black', marker_line_width=2)
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Gráfico 100% stacked (proporcional)
+        grouped_pct = grouped.copy()
+        total_por_año = grouped_pct.groupby('año')['valor_usd_millones'].transform('sum')
+        grouped_pct['porcentaje'] = grouped_pct['valor_usd_millones'] / total_por_año * 100
+        fig_pct = px.bar(
+            grouped_pct.sort_values(['año', 'RGF_clasificacion']),
+            x='año',
+            y='porcentaje',
+            color='RGF_clasificacion',
+            color_discrete_map=color_map,
+            category_orders={'RGF_clasificacion': ['Interno', 'Externo']},
+            labels={'porcentaje': 'Porcentaje (%)', 'año': 'Año', 'RGF_clasificacion': 'Clasificación'},
+            barmode='stack',
+            title='%',
+            height=300
+        )
+        fig_pct.update_layout(title_x=0.5)
+        fig_pct.update_yaxes(range=[0, 100], showgrid=False)
+        fig_pct.update_xaxes(showgrid=False)  # Mantener etiqueta eje x
+        fig_pct.update_traces(marker_line_color='black', marker_line_width=2)
+        st.plotly_chart(fig_pct, use_container_width=True)
 
 elif page == 'Regiones por Financiador':
     header_cols = st.columns([0.12, 0.88])
