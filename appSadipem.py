@@ -203,45 +203,45 @@ elif page == 'Interno Vs Externo':
             'Water supply - large systems': '#264653',
             'Otros': '#b7bdc1',
         }
-        grouped_sector = df.groupby(['RGF_clasificacion', 'sector'])['valor_usd'].sum().reset_index()
+        grouped_sector = df.groupby(['año', 'RGF_clasificacion', 'sector'])['valor_usd'].sum().reset_index()
         grouped_sector['valor_usd_millones'] = grouped_sector['valor_usd'] / 1_000_000
         for clasif in ['Interno', 'Externo']:
             df_cl = grouped_sector[grouped_sector['RGF_clasificacion'] == clasif].copy()
             if df_cl.empty:
                 st.info(f'No hay datos para {clasif}.')
                 continue
-            df_cl = df_cl.sort_values('valor_usd_millones', ascending=False)
+            df_cl = df_cl.sort_values('año')
             fig_abs = px.bar(
                 df_cl,
-                x='sector',
+                x='año',
                 y='valor_usd_millones',
                 color='sector',
                 color_discrete_map=color_map,
-                labels={'sector': '', 'valor_usd_millones': 'Valor USD (millones)'},
-                title=f'Aprobaciones por sector - {clasif}',
+                labels={'año': 'Año', 'valor_usd_millones': 'Valor USD (millones)', 'sector': 'Sector'},
+                title=f'Aprobaciones por año y sector - {clasif}',
                 height=350
             )
-            fig_abs.update_layout(title_x=0.5, showlegend=False)
+            fig_abs.update_layout(title_x=0.5, barmode='stack')
             fig_abs.update_yaxes(showgrid=False)
-            fig_abs.update_xaxes(showgrid=False, title_text='', tickangle=45)
+            fig_abs.update_xaxes(showgrid=False, title_text='')
             fig_abs.update_traces(marker_line_color='black', marker_line_width=2)
             st.plotly_chart(fig_abs, use_container_width=True)
 
-            total_cl = df_cl['valor_usd_millones'].sum()
-            df_cl['porcentaje'] = df_cl['valor_usd_millones'] / total_cl * 100
+            total_por_año = df_cl.groupby('año')['valor_usd_millones'].transform('sum')
+            df_cl['porcentaje'] = df_cl['valor_usd_millones'] / total_por_año * 100
             fig_pct = px.bar(
                 df_cl,
-                x='sector',
+                x='año',
                 y='porcentaje',
                 color='sector',
                 color_discrete_map=color_map,
-                labels={'sector': '', 'porcentaje': 'Porcentaje (%)'},
-                title=f'% por sector - {clasif}',
+                labels={'año': 'Año', 'porcentaje': 'Porcentaje (%)', 'sector': 'Sector'},
+                title=f'% por año y sector - {clasif}',
                 height=300
             )
-            fig_pct.update_layout(title_x=0.5, showlegend=False)
+            fig_pct.update_layout(title_x=0.5, barmode='stack')
             fig_pct.update_yaxes(range=[0, 100], showgrid=False)
-            fig_pct.update_xaxes(showgrid=False, title_text='', tickangle=45)
+            fig_pct.update_xaxes(showgrid=False)
             fig_pct.update_traces(marker_line_color='black', marker_line_width=2)
             st.plotly_chart(fig_pct, use_container_width=True)
     else:
